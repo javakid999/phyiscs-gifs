@@ -8,16 +8,25 @@ class Keyframe:
         self.value = value
 
 class Animation:
+    #animation types
+
     def __init__(self):
         self.keyframes = []
 
-    def generate_keyframes(self, values, times):
+    def add_keyframes(self, values, times):
         if len(values) != len(times): return
         for i in range(len(values)):
-            self.keyframes.append(Keyframe(times[i], values[i]))
+            for j in range(len(self.keyframes)):
+                if self.keyframes[j].time >= times[i]:
+                    self.keyframes.insert(j, Keyframe(times[i], values[i]))
+                    break
 
     def get_value(self, time):
-        pass    
+        for i in range(len(self.keyframes)):
+                if self.keyframes[i].time == time:
+                    return self.keyframes[i].value
+                elif self.keyframes[i].time < time:
+                    pass
 
 
 class Screen:
@@ -60,4 +69,4 @@ class Screen:
             self.clock.tick((60))
             pygame.display.set_caption(str(self.clock.get_fps()))
 
-Screen()
+s = Screen()

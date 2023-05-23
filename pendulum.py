@@ -1,72 +1,46 @@
 import pygame, math
+from animation import Keyframe, Animation
+from screen import Screen
 
-pygame.init()
+class Pendulum(Screen):
+    def __init__(self, dimensions, font_size=12):
+        super().__init__(dimensions, font_size)
 
-class Keyframe:
-    def __init__(self, time, value):
-        self.time = time
-        self.value = value
-
-class Animation:
-    #animation types
-
-    def __init__(self):
-        self.keyframes = []
-
-    def add_keyframes(self, values, times):
-        if len(values) != len(times): return
-        for i in range(len(values)):
-            for j in range(len(self.keyframes)):
-                if self.keyframes[j].time >= times[i]:
-                    self.keyframes.insert(j, Keyframe(times[i], values[i]))
-                    break
-
-    def get_value(self, time):
-        for i in range(len(self.keyframes)):
-                if self.keyframes[i].time == time:
-                    return self.keyframes[i].value
-                elif self.keyframes[i].time < time:
-                    pass
-
-
-class Screen:
-    def __init__(self):
-        self.display = pygame.display.set_mode((512,512))
-        self.clock = pygame.time.Clock()
+        self.name = 'pendulum'
         self.g = -9.8
-        self.angle = 50
+        self.angle = 120
         self.angular_velocity = 0
-        self.length = 100
-        self.origin = (256, 100)
-        self.run()
+        self.length = 200
+        self.origin = (512, 200)
 
     def update_angle(self):
         a_prev = self.angle * math.pi / 180
         self.angle = self.angle - self.angular_velocity * 0.01
         self.angular_velocity = self.angular_velocity - (self.g/self.length) * math.sin(a_prev) * 0.01
 
-    def render(self):
-        self.display.fill((0,0,0))
+    def render(self, screen):
+        super().render(screen)
+
         angle_rads = self.angle * math.pi / 180
         start = min(-angle_rads+3*math.pi/2, 3*math.pi/2)
         stop = max(-angle_rads+3*math.pi/2, 3*math.pi/2)
-        pygame.draw.arc(self.display, (255,255,255), (self.origin[0]-10, self.origin[1]-10,20,20), start, stop)
+        pygame.draw.arc(screen, (255,255,255), (self.origin[0]-40, self.origin[1]-40,80,80), start, stop)
         for i in range(int(self.length/20)):
-            pygame.draw.line(self.display, (128,128,128), (self.origin[0], self.origin[1]+i*20), (self.origin[0], self.origin[1]+i*20+10))
-        pygame.draw.aaline(self.display, (255,255,255), self.origin, (self.origin[0]-self.length*math.sin(angle_rads),self.origin[1]+self.length*math.cos(angle_rads)))
-        pygame.draw.circle(self.display, (255,128,128), (self.origin[0]-self.length*math.sin(angle_rads),self.origin[1]+self.length*math.cos(angle_rads)), 10)
+            pygame.draw.line(screen, (128,128,128), (self.origin[0], self.origin[1]+i*20), (self.origin[0], self.origin[1]+i*20+10))
+        pygame.draw.aaline(screen, (255,255,255), self.origin, (self.origin[0]-self.length*math.sin(angle_rads),self.origin[1]+self.length*math.cos(angle_rads)))
+        pygame.draw.circle(screen, (255,128,128), (self.origin[0]-self.length*math.sin(angle_rads),self.origin[1]+self.length*math.cos(angle_rads)), 20)
+        angle = (-angle_rads*1.4+3*math.pi/2+3*math.pi/2)/2
+        screen.blit(self.font.render("θ", True, (255,255,255)), (50*math.cos(angle)+self.origin[0]-8,50*math.sin(-angle)+self.origin[1]))
 
-    def run(self):
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    return
-            for i in range(100):
+    def update(self):
+        super().update()
+
+        for i in range(100):
                 self.update_angle()
-            self.render()
-            pygame.display.update()
-            self.clock.tick((60))
-            pygame.display.set_caption(str(self.clock.get_fps()))
 
-s = Screen()
+pygame.init()
+
+s = Pendulum((1024,1024), 25)
+s.add_display((512,512))
+s.save_animation(10, 20)
+s.run_display()
